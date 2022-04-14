@@ -8,7 +8,9 @@ Debian/Ubuntu/Mint:
 curl -L "https://packages.gitlab.com/install/repositories/runner/gitlab-runner/script.deb.sh" | sudo bash
 ```
 RHEL/CentOS/Fedora:
+```
 curl -L "https://packages.gitlab.com/install/repositories/runner/gitlab-runner/script.rpm.sh" | sudo bash
+```
 
 ### Установка
 Debian/Ubuntu/Mint:
@@ -45,10 +47,10 @@ sudo gitlab-runner register --url https://gitlab.example.com/ --registration-tok
 ```
 gitlab-runner ALL=(ALL) NOPASSWD: ALL
 ```
- 
- 
- 
- 
- 
+  
+   
+   
+   
+  
 Links: 
 https://docs.gitlab.com/runner/install/linux-manually.html
