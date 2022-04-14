@@ -1,0 +1,48 @@
+stages:
+    - build
+    - test
+
+variables:
+    GITLAB_BUILD_DIR: build
+    GITLAB_TEST_DIR_1: /etc/gitlab-test
+    GITLAB_TEST_DIR_2: test
+
+
+stage_build:
+    stage: build
+    image: ubuntu:20.04
+    tags:
+        - building
+    script:
+        - mkdir build
+        - cp installWEB.sh build/
+        - cd build
+        - echo "---=== Hello GitLab ===---" >> installWEB.sh
+        - cat installWEB.sh
+    artifacts:
+        paths:
+            - $GITLAB_BUILD_DIR/
+
+    allow_failure: true        
+
+stage_test:
+    stage: test
+    tags:
+        - testing
+    script:
+        - sudo rm -rf $GITLAB_TEST_DIR_1
+        - sudo rm -rf $GITLAB_TEST_DIR_2
+        - sudo mkdir $GITLAB_TEST_DIR_2
+        - sudo mkdir $GITLAB_TEST_DIR_1
+        - sudo touch $GITLAB_TEST_DIR_1/file1.txt
+        - sudo bash -c 'echo "!!! Hello Runner !!!" > '$GITLAB_TEST_DIR_1'/file1.txt'
+        - sudo cat $GITLAB_TEST_DIR_1/file1.txt
+        - sudo cp $GITLAB_TEST_DIR_1/file1.txt $GITLAB_TEST_DIR_2/
+        - sudo rm -rf $GITLAB_TEST_DIR_1
+        - sudo cat $GITLAB_TEST_DIR_2/file1.txt
+
+    artifacts:
+        paths:
+            - $GITLAB_TEST_DIR_2/
+         
+
