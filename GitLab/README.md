@@ -31,11 +31,10 @@ sudo yum install gitlab-runner-10.0.0-1
 ```
 
 ## Регистрация GitLab Runner
-
 ```
 sudo gitlab-runner register 
 ```
-или сразу с параметрами
+можно сразу указать параметры
 ```
 sudo gitlab-runner register --url https://gitlab.example.com/ --registration-token GR43289467y7EHFpzaPbrRyvtoy8b
 ```
@@ -46,9 +45,10 @@ sudo gitlab-runner register --url https://gitlab.example.com/ --registration-tok
 ```
 gitlab-runner ALL=(ALL) NOPASSWD: ALL
 ```
-
-
-
-
-Links:
+ 
+ 
+ 
+ 
+ 
+Links: 
 https://docs.gitlab.com/runner/install/linux-manually.html
