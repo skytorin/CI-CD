@@ -1,0 +1,86 @@
+stages:
+    - build
+    - test
+    - deployments
+
+variables:
+    GITLAB_BUILD_DIR: build-artifacts
+    GITLAB_TEST_DIR_1: /etc/gitlab-test
+    GITLAB_TEST_DIR_2: test-artifacts
+    GITLAB_DEPLOY_DIR: deploy-env-artifacts
+    #GITLAB_DEPLOY_DIR_VAR: deploy-var-artifacts
+    GITLAB_FILE_SCRIPT: bash-script-env.sh
+    GITLAB_FILE_VARIABLE: gitlab-predefined-variables.txt
+    DEPLOY_FILE_SYSTEN_ENV: deploy-system-env.txt
+    DEPLOY_PREDEFINED_VAR_SYSTEN_ENV: deploy-predefined-var.txt
+
+stage_build:
+    stage: build
+    image: ubuntu:20.04
+    tags:
+        - building
+    script:
+        - mkdir $GITLAB_BUILD_DIR
+        - pwd
+        - ls -al
+        - cp bash-script.sh $GITLAB_BUILD_DIR/$GITLAB_FILE_SCRIPT
+        - cd $GITLAB_BUILD_DIR
+        - echo "echo "### ---=== System ENV ===---"" >> $GITLAB_FILE_SCRIPT
+        - echo "echo "HOME- ${HOME}"" >> $GITLAB_FILE_SCRIPT
+        - echo "echo "SHELL- ${SHELL}"" >> $GITLAB_FILE_SCRIPT
+        - echo "echo "TERM- ${TERM}"" >> $GITLAB_FILE_SCRIPT
+        - echo "echo "LANG- ${LANG}"" >> $GITLAB_FILE_SCRIPT
+        - cat $GITLAB_FILE_SCRIPT
+        - touch $GITLAB_FILE_VARIABLE
+        - echo "### ---=== Predefined Variables Reference GitLab ===---" >> $GITLAB_FILE_VARIABLE
+        - echo "CHAT_CHANNEL- ${CHAT_CHANNEL}" >> $GITLAB_FILE_VARIABLE
+        - echo "CI_RUNNER_TAGS- ${CI_RUNNER_TAGS}" >> $GITLAB_FILE_VARIABLE
+        - echo "GITLAB_USER_NAME- ${GITLAB_USER_NAME}" >> $GITLAB_FILE_VARIABLE
+        - echo "CI_SERVER_NAME- ${CI_SERVER_NAME}" >> $GITLAB_FILE_VARIABLE
+
+    artifacts:
+        paths:
+            - $GITLAB_BUILD_DIR/
+    allow_failure: true        
+
+stage_test:
+    stage: test
+    needs: [stage_build]
+    tags:
+        - testing
+    script:
+        - sudo mkdir $GITLAB_TEST_DIR_1
+        - mkdir $GITLAB_TEST_DIR_2
+        - sudo touch $GITLAB_TEST_DIR_1/file1.txt
+        - sudo bash -c 'echo "Hello Runner" > '$GITLAB_TEST_DIR_1'/file1.txt'
+        - sudo cat $GITLAB_TEST_DIR_1/file1.txt
+        - sudo cp $GITLAB_TEST_DIR_1/file1.txt $GITLAB_TEST_DIR_2/
+        - sudo rm -rf $GITLAB_TEST_DIR_1
+        - sudo cat $GITLAB_TEST_DIR_2/file1.txt
+        - sudo chown -R gitlab-runner:gitlab-runner $GITLAB_TEST_DIR_2
+    artifacts:
+        paths:
+            - $GITLAB_TEST_DIR_2/
+    allow_failure: true
+
+stage_deployments:
+    stage: deployments
+    needs: [stage_build, stage_test]
+    tags:
+        - deploy
+    script:
+        - mkdir $GITLAB_DEPLOY_DIR
+        - cp -r $GITLAB_BUILD_DIR $GITLAB_DEPLOY_DIR
+        - cd $GITLAB_DEPLOY_DIR/$GITLAB_BUILD_DIR
+        - chmod ugo+x $GITLAB_FILE_SCRIPT
+        - cat $GITLAB_FILE_SCRIPT
+        - ./$GITLAB_FILE_SCRIPT >> $DEPLOY_FILE_SYSTEN_ENV
+        - cat $DEPLOY_FILE_SYSTEN_ENV
+        - cat $GITLAB_FILE_VARIABLE > $DEPLOY_PREDEFINED_VAR_SYSTEN_ENV
+        - rm $GITLAB_FILE_VARIABLE
+        - cat $DEPLOY_PREDEFINED_VAR_SYSTEN_ENV 
+    artifacts:
+        paths:
+            - $GITLAB_DEPLOY_DIR/
+
+
